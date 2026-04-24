@@ -10,28 +10,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install Terraform
-      uses: hashicorp/setup-terraform@v3
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
-      run: |
-        cd terraform
-        terraform init
+      # ✅ Terraform Init
+      - name: Terraform Init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-west-1
+        run: |
+          cd terraform
+          terraform init
 
-    - name: Terraform Apply
-      run: |
-        cd terraform
-        terraform apply -auto-approve
+      # ✅ Terraform Apply
+      - name: Terraform Apply
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-west-1
+        run: |
+          cd terraform
+          terraform apply -auto-approve
 
-    - name: Install Ansible
-      run: |
-        sudo apt update
-        sudo apt install -y ansible
+      # ✅ Install Ansible
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
 
-    - name: Run Ansible Playbook
-      run: |
-        cd ansible-lab
-        ansible-playbook -i inventory.ini nginx.yml
+      # ⚠️ (Temporary) Run Ansible Playbook
+      # This assumes your inventory already has a reachable IP
+      - name: Run Ansible Playbook
+        run: |
+          cd ansible-lab
+          ansible-playbook -i inventory.ini nginx.yml
