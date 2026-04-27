@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    bucket         = "shorya-terraform-state-123"
+    key            = "linux-automation/terraform.tfstate"
+    region         = "eu-west-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
+}
+
 provider "aws" {
   region = "eu-west-1"
 }
