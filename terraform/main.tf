@@ -18,9 +18,9 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_security_group" "web_sg" {
-  name        = "shorya-web-sg"
+  
   description = "Allow SSH and HTTP"
-
+  name_prefix = "shorya-web-sg-"
   ingress {
     description = "SSH access"
     from_port   = 22
