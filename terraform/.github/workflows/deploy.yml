@@ -1,0 +1,59 @@
+name: Deploy Cloud Automation Lab
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-1
+
+    - name: Terraform Init
+      run: |
+        cd terraform
+        terraform init
+
+    - name: Terraform Apply (DEV)
+      run: |
+        cd terraform
+        terraform apply -auto-approve -var-file="dev.tfvars"
+
+    - name: Install Ansible
+      run: |
+        sudo apt update
+        sudo apt install -y ansible
+
+    - name: Get Public IP from Terraform
+      run: |
+        cd terraform
+        terraform output -raw public_ip > ../public_ip.txt
+
+    - name: Create inventory file
+      run: |
+        echo "[web]" > inventory.ini
+        cat public_ip.txt >> inventory.ini
+
+    - name: Setup SSH key
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
+        chmod 600 key.pem
+
+    - name: Run Ansible Playbook
+      run: |
+        ansible-playbook -i inventory.ini ansible-lab/nginx.yml \
+        --private-key key.pem -u ubuntu
